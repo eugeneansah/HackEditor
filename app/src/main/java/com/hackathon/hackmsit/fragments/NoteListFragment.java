@@ -43,14 +43,14 @@ public class NoteListFragment extends Fragment {
         //in mRootView
         mRootView = inflater.inflate(R.layout.fragment_note_list, container, false);
 
-        mFab = (FloatingActionButton) mRootView.findViewById(R.id.fab);
+        /*mFab = (FloatingActionButton) mRootView.findViewById(R.id.fab);
 
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(getActivity(), NoteEditorActivity.class));
             }
-        });
+        });*/
 
         tvDefault = (TextView) mRootView.findViewById(R.id.tv_default);
         tvDefault.setVisibility(View.GONE);
@@ -90,14 +90,7 @@ public class NoteListFragment extends Fragment {
 
             @Override
             public void onTouchEvent(RecyclerView recyclerView, MotionEvent motionEvent) {
-                View child = recyclerView.findChildViewUnder(motionEvent.getX(), motionEvent.getY());
 
-                if (child != null && mGestureDetector.onTouchEvent(motionEvent)) {
-                    int position = recyclerView.getChildLayoutPosition(child);
-                    Note selectedNote = mNotes.get(position);
-                    Intent editorIntent = new Intent(getActivity(), NoteEditorActivity.class);
-                    editorIntent.putExtra("id", selectedNote.getId());
-                }
             }
 
             @Override

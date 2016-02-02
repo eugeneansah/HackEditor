@@ -22,7 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-    <com.melnykov.fab.FloatingActionButton
+    <!--<com.melnykov.fab.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -36,5 +36,5 @@
         fab:fab_colorRipple="@color/primary_light"
         fab:fab_shadow="true"
         fab:fab_type="normal"/>
-
+-->
 </RelativeLayout>

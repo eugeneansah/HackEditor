@@ -1,6 +1,11 @@
 package com.hackathon.hackmsit.activities;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -25,15 +30,39 @@ public class MainActivity extends AppCompatActivity {
 
     private Toolbar mToolbar;
     private com.mikepenz.materialdrawer.Drawer result = null;
+    private CoordinatorLayout mCoordinatorLayout;
+    private FloatingActionButton mFab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mToolbar = (Toolbar)findViewById(R.id.toolbar);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+
+        mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences("pref", 0);
+        SharedPreferences.Editor editor = prefs.edit();
+        String flag = prefs.getString("deleted", "");
+        if (flag.equals("1")) {
+            Snackbar snackbar = Snackbar
+                    .make(mCoordinatorLayout, "Code deleted", Snackbar.LENGTH_SHORT);
+            snackbar.show();
+            editor.putString("deleted", "0");
+            editor.apply();
+        }
+
+        mFab = (FloatingActionButton) findViewById(R.id.fab);
+
+        mFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, NoteEditorActivity.class));
+            }
+        });
 
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
         databaseHelper.getWritableDatabase();
@@ -51,17 +80,17 @@ public class MainActivity extends AppCompatActivity {
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int i, IDrawerItem drawerItem) {
-                        if (drawerItem != null && drawerItem instanceof Nameable){
-                            String name = ((Nameable)drawerItem).getName().getText(MainActivity.this);
+                        if (drawerItem != null && drawerItem instanceof Nameable) {
+                            String name = ((Nameable) drawerItem).getName().getText(MainActivity.this);
                             mToolbar.setTitle(name);
                         }
 
-                        if (drawerItem != null){
+                        if (drawerItem != null) {
                             int selectedScreen = drawerItem.getIdentifier();
-                            switch (selectedScreen){
+                            switch (selectedScreen) {
                                 case 1:
                                     //go to List of Notes
-                                    openFragment(new NoteListFragment(), "Notes");
+                                    openFragment(new NoteListFragment(), "Codes");
                                     break;
                                 /*case 2:
                                     //go the editor screen
@@ -97,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
                 .withFireOnInitialOnClick(true)
                 .withSavedInstance(savedInstanceState)
                 .build();
-        if (savedInstanceState == null){
+        if (savedInstanceState == null) {
             result.setSelection(1);
         }
 
@@ -126,12 +155,12 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void openFragment(final Fragment fragment, String title){
+    private void openFragment(final Fragment fragment, String title) {
         getSupportFragmentManager()
                 .beginTransaction()
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                 .replace(R.id.container, fragment)
-                //.addToBackStack(null)
+                        //.addToBackStack(null)
                 .commit();
         getSupportActionBar().setTitle(title);
     }

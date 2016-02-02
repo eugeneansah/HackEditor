@@ -1,34 +1,51 @@
 package com.hackathon.hackmsit.fragments;
 
 
-import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
+import android.support.design.widget.TabLayout;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.Toast;
+import android.widget.TabHost;
 
 import com.hackathon.hackmsit.R;
 import com.hackathon.hackmsit.activities.MainActivity;
 import com.hackathon.hackmsit.data.NoteManager;
 import com.hackathon.hackmsit.models.Note;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class NotePlainEditorFragment extends Fragment {
 
     private View mRootView;
-    private EditText mTitleEditText;
-    private EditText mContentEditText;
+    private EditText mTitleEditText, mContentEditText;
     private Note mCurrentNote = null;
     Bundle args;
+    private TextInputLayout inputLayoutTitle, inputLayoutCode;
+    private CoordinatorLayout mCoordinatorLayout;
+    private TabLayout tabLayout;
+    private ViewPager viewPager;
+    private String[] keys = {"{", "}", "(", ")", ";"};
 
     public NotePlainEditorFragment() {
         // Required empty public constructor
@@ -49,8 +66,104 @@ public class NotePlainEditorFragment extends Fragment {
         mRootView = inflater.inflate(R.layout.fragment_note_plain_editor, container, false);
         mTitleEditText = (EditText) mRootView.findViewById(R.id.edit_text_title);
         mContentEditText = (EditText) mRootView.findViewById(R.id.edit_text_note);
+        inputLayoutTitle = (TextInputLayout) mRootView.findViewById(R.id.input_layout_title);
+        inputLayoutCode = (TextInputLayout) mRootView.findViewById(R.id.input_layout_code);
+        mCoordinatorLayout = (CoordinatorLayout) mRootView.findViewById(R.id.coordinatorLayout);
 
+        viewPager = (ViewPager) mRootView.findViewById(R.id.viewpager);
+        setupViewPager(viewPager);
+
+        tabLayout = (TabLayout) mRootView.findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(viewPager);
+        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                int numTab = tab.getPosition();
+                if (mContentEditText.hasFocus()) {
+                    int cursorPos = mContentEditText.getSelectionStart();
+                    String content = mContentEditText.getText().toString();
+                    //StringBuilder sb = new StringBuilder();
+                    //sb.insert(cursorPos, keys[numTab]);
+                    content = new StringBuffer(content).insert(cursorPos, keys[numTab]).toString();
+                    mContentEditText.setText(content);
+                    mContentEditText.setSelection(cursorPos + 1);
+                } else {
+                    String content = mContentEditText.getText().toString() + keys[numTab];
+                    mContentEditText.setText(content);
+                    mContentEditText.setSelection(content.length());
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+                int numTab = tab.getPosition();
+                if (mContentEditText.hasFocus()) {
+                    int cursorPos = mContentEditText.getSelectionStart();
+                    String content = mContentEditText.getText().toString();
+                    //StringBuilder sb = new StringBuilder();
+                    //sb.insert(cursorPos, keys[numTab]);
+                    content = new StringBuffer(content).insert(cursorPos, keys[numTab]).toString();
+                    mContentEditText.setText(content);
+                    mContentEditText.setSelection(cursorPos + 1);
+                } else {
+                    String content = mContentEditText.getText().toString() + keys[numTab];
+                    mContentEditText.setText(content);
+                    mContentEditText.setSelection(content.length());
+                }
+            }
+        });
+        /*tabLayout.getChildAt(3).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("TAG", "Clicked tab : " + tabLayout.getSelectedTabPosition());
+                //tabHost.setCurrentTab(0);
+            }
+        });
+*/
         return mRootView;
+    }
+
+    private void setupViewPager(ViewPager viewPager) {
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getActivity().getSupportFragmentManager());
+        adapter.addFragment(new Test(), "{");
+        adapter.addFragment(new Test(), "}");
+        adapter.addFragment(new Test(), "(");
+        adapter.addFragment(new Test(), ")");
+        adapter.addFragment(new Test(), ";");
+        viewPager.setAdapter(adapter);
+    }
+
+    class ViewPagerAdapter extends FragmentPagerAdapter {
+        private final List<Fragment> mFragmentList = new ArrayList<>();
+        private final List<String> mFragmentTitleList = new ArrayList<>();
+
+        public ViewPagerAdapter(FragmentManager manager) {
+            super(manager);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return mFragmentList.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return mFragmentTitleList.size();
+        }
+
+        public void addFragment(Fragment fragment, String title) {
+            mFragmentList.add(fragment);
+            mFragmentTitleList.add(title);
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return mFragmentTitleList.get(position);
+        }
     }
 
     @Override
@@ -81,21 +194,29 @@ public class NotePlainEditorFragment extends Fragment {
                 if (mCurrentNote != null) {
                     promptForDelete();
                 } else {
-                    makeToast("Cannot delete note that has not been saved");
+                    makeSnackbar("Error deleting code, please save it first");
                 }
                 break;
             case R.id.action_save:
                 //save note
+                View view = getActivity().getCurrentFocus();
+                if (view != null) {
+                    ((InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE)).
+                            hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                }
+
                 if (saveNote()) {
-                    makeToast(mCurrentNote != null ? "Note updated" : "Note saved");
+                    makeSnackbar(mCurrentNote != null ? "Code updated" : "Code saved");
                 }
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void makeToast(String message) {
-        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+    private void makeSnackbar(String message) {
+        Snackbar snackbar = Snackbar
+                .make(mCoordinatorLayout, message, Snackbar.LENGTH_SHORT);
+        snackbar.show();
     }
 
     public static NotePlainEditorFragment newInstance(long id) {
@@ -119,15 +240,20 @@ public class NotePlainEditorFragment extends Fragment {
     }
 
     private boolean saveNote() {
-        String title = mTitleEditText.getText().toString();
+        String title = mTitleEditText.getText().toString().trim();
         if (TextUtils.isEmpty(title)) {
-            mTitleEditText.setError("Title is required");
+            inputLayoutTitle.setError("Title is required");
             return false;
+        } else {
+            inputLayoutTitle.setErrorEnabled(false);
         }
-        String content = mContentEditText.getText().toString();
+
+        String content = mContentEditText.getText().toString().trim();
         if (TextUtils.isEmpty(content)) {
-            mContentEditText.setError("Content is required");
+            mContentEditText.setError("Code is required");
             return false;
+        } else {
+            inputLayoutCode.setErrorEnabled(false);
         }
         if (mCurrentNote != null) {
             mCurrentNote.setContent(content);
@@ -150,13 +276,18 @@ public class NotePlainEditorFragment extends Fragment {
     public void promptForDelete() {
         final String titleOfNoteTobeDeleted = mCurrentNote.getTitle();
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
-        alertDialog.setTitle("Delete " + titleOfNoteTobeDeleted + " ?");
-        alertDialog.setMessage("Are you sure you want to delete the note " + titleOfNoteTobeDeleted + "?");
+        alertDialog.setTitle("Confirm Action");
+        alertDialog.setMessage("Delete " + titleOfNoteTobeDeleted + "?");
         alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 NoteManager.newInstance(getActivity()).delete(mCurrentNote);
-                makeToast(titleOfNoteTobeDeleted + " deleted");
+
+                SharedPreferences prefs = getActivity().getApplicationContext().getSharedPreferences("pref", 0);
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putString("deleted", "1");
+                editor.apply();
+                //makeSnackbar("Code deleted");
                 //startActivity(new Intent(getActivity(), MainActivity.class));
                 Intent intent = new Intent(getActivity(), MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
