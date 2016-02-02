@@ -5,6 +5,15 @@
              xmlns:fab="http://schemas.android.com/apk/res-auto"
              tools:context="com.hackathon.hackmsit.fragments.NoteListFragment">
 
+    <TextView
+        android:id="@+id/tv_default"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:text="@string/no_notes"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
     <!-- A RecyclerView with some commonly used attributes -->
     <android.support.v7.widget.RecyclerView
         android:id="@+id/note_recycler_view"

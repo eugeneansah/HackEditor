@@ -1,6 +1,7 @@
 package com.hackathon.hackmsit.fragments;
 
 
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -27,6 +28,7 @@ public class NotePlainEditorFragment extends Fragment {
     private EditText mTitleEditText;
     private EditText mContentEditText;
     private Note mCurrentNote = null;
+    Bundle args;
 
     public NotePlainEditorFragment() {
         // Required empty public constructor
@@ -36,6 +38,7 @@ public class NotePlainEditorFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        args = getArguments();
         getCurrentNote();
     }
 
@@ -48,6 +51,11 @@ public class NotePlainEditorFragment extends Fragment {
         mContentEditText = (EditText) mRootView.findViewById(R.id.edit_text_note);
 
         return mRootView;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
     }
 
     @Override
@@ -102,7 +110,6 @@ public class NotePlainEditorFragment extends Fragment {
     }
 
     private void getCurrentNote() {
-        Bundle args = getArguments();
         if (args != null && args.containsKey("id")) {
             long id = args.getLong("id", 0);
             if (id > 0) {
@@ -149,8 +156,11 @@ public class NotePlainEditorFragment extends Fragment {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 NoteManager.newInstance(getActivity()).delete(mCurrentNote);
-                makeToast(titleOfNoteTobeDeleted + "deleted");
-                startActivity(new Intent(getActivity(), MainActivity.class));
+                makeToast(titleOfNoteTobeDeleted + " deleted");
+                //startActivity(new Intent(getActivity(), MainActivity.class));
+                Intent intent = new Intent(getActivity(), MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
             }
         });
         alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

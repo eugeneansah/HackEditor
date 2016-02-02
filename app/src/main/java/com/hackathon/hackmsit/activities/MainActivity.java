@@ -82,7 +82,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onDrawerOpened(View view) {
                         KeyboardUtil.hideKeyboard(MainActivity.this);
-
                     }
 
                     @Override
@@ -132,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
                 .beginTransaction()
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                 .replace(R.id.container, fragment)
-                .addToBackStack(null)
+                //.addToBackStack(null)
                 .commit();
         getSupportActionBar().setTitle(title);
     }

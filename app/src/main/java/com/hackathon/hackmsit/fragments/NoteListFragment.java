@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.hackathon.hackmsit.data.NoteManager;
 import com.melnykov.fab.FloatingActionButton;
@@ -29,7 +30,7 @@ public class NoteListFragment extends Fragment {
     private RecyclerView mRecyclerView;
     private NoteListAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-
+    private TextView tvDefault;
 
     public NoteListFragment() {
         // Required empty public constructor
@@ -51,10 +52,12 @@ public class NoteListFragment extends Fragment {
             }
         });
 
+        tvDefault = (TextView) mRootView.findViewById(R.id.tv_default);
+        tvDefault.setVisibility(View.GONE);
+
         setupList();
         return mRootView;
     }
-
 
     private void setupList() {
         mRecyclerView = (RecyclerView) mRootView.findViewById(R.id.note_recycler_view);
@@ -80,13 +83,21 @@ public class NoteListFragment extends Fragment {
                     Note selectedNote = mNotes.get(position);
                     Intent editorIntent = new Intent(getActivity(), NoteEditorActivity.class);
                     editorIntent.putExtra("id", selectedNote.getId());
+                    startActivity(editorIntent);
                 }
                 return false;
             }
 
             @Override
-            public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+            public void onTouchEvent(RecyclerView recyclerView, MotionEvent motionEvent) {
+                View child = recyclerView.findChildViewUnder(motionEvent.getX(), motionEvent.getY());
 
+                if (child != null && mGestureDetector.onTouchEvent(motionEvent)) {
+                    int position = recyclerView.getChildLayoutPosition(child);
+                    Note selectedNote = mNotes.get(position);
+                    Intent editorIntent = new Intent(getActivity(), NoteEditorActivity.class);
+                    editorIntent.putExtra("id", selectedNote.getId());
+                }
             }
 
             @Override
@@ -95,6 +106,9 @@ public class NoteListFragment extends Fragment {
             }
         });
         mNotes = NoteManager.newInstance(getActivity()).getAllNotes();
+        if (mNotes.isEmpty()) {
+            tvDefault.setVisibility(View.VISIBLE);
+        }
         mAdapter = new NoteListAdapter(mNotes, getActivity());
         mRecyclerView.setAdapter(mAdapter);
     }
