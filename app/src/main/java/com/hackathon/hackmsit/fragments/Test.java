@@ -6,6 +6,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+//placeholder fragment
+
 public class Test extends Fragment{
 
     @Override

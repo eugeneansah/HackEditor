@@ -1,6 +1,5 @@
 package com.hackathon.hackmsit.fragments;
 
-
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -15,8 +14,11 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,7 +27,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.TabHost;
 
 import com.hackathon.hackmsit.R;
 import com.hackathon.hackmsit.activities.MainActivity;
@@ -37,15 +38,13 @@ import java.util.List;
 
 public class NotePlainEditorFragment extends Fragment {
 
-    private View mRootView;
     private EditText mTitleEditText, mContentEditText;
     private Note mCurrentNote = null;
     Bundle args;
     private TextInputLayout inputLayoutTitle, inputLayoutCode;
     private CoordinatorLayout mCoordinatorLayout;
-    private TabLayout tabLayout;
-    private ViewPager viewPager;
     private String[] keys = {"{", "}", "(", ")", ";"};
+    private int spacing;
 
     public NotePlainEditorFragment() {
         // Required empty public constructor
@@ -63,17 +62,18 @@ public class NotePlainEditorFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        mRootView = inflater.inflate(R.layout.fragment_note_plain_editor, container, false);
+        View mRootView = inflater.inflate(R.layout.fragment_note_plain_editor, container, false);
         mTitleEditText = (EditText) mRootView.findViewById(R.id.edit_text_title);
         mContentEditText = (EditText) mRootView.findViewById(R.id.edit_text_note);
         inputLayoutTitle = (TextInputLayout) mRootView.findViewById(R.id.input_layout_title);
         inputLayoutCode = (TextInputLayout) mRootView.findViewById(R.id.input_layout_code);
         mCoordinatorLayout = (CoordinatorLayout) mRootView.findViewById(R.id.coordinatorLayout);
+        spacing = 0;
 
-        viewPager = (ViewPager) mRootView.findViewById(R.id.viewpager);
+        ViewPager viewPager = (ViewPager) mRootView.findViewById(R.id.viewpager);
         setupViewPager(viewPager);
 
-        tabLayout = (TabLayout) mRootView.findViewById(R.id.tabs);
+        TabLayout tabLayout = (TabLayout) mRootView.findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
         tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -82,8 +82,6 @@ public class NotePlainEditorFragment extends Fragment {
                 if (mContentEditText.hasFocus()) {
                     int cursorPos = mContentEditText.getSelectionStart();
                     String content = mContentEditText.getText().toString();
-                    //StringBuilder sb = new StringBuilder();
-                    //sb.insert(cursorPos, keys[numTab]);
                     content = new StringBuffer(content).insert(cursorPos, keys[numTab]).toString();
                     mContentEditText.setText(content);
                     mContentEditText.setSelection(cursorPos + 1);
@@ -91,6 +89,21 @@ public class NotePlainEditorFragment extends Fragment {
                     String content = mContentEditText.getText().toString() + keys[numTab];
                     mContentEditText.setText(content);
                     mContentEditText.setSelection(content.length());
+                }
+
+                //Indentation method
+                if (keys[numTab].equals("{")) {
+                    spacing += 8;
+                    Log.d("spacing", String.valueOf(spacing));
+                } else if (keys[numTab].equals("}") && spacing >= 4) {
+                    spacing -= 8;
+                    Log.d("spacing", String.valueOf(spacing));
+                    int cursorPos = mContentEditText.getSelectionStart();
+                    String content = mContentEditText.getText().toString();
+                    String spaces = new String(new char[spacing]).replace("\0", " ");
+                    content = new StringBuffer(content).insert(cursorPos - 1, "\n" + spaces).toString();
+                    mContentEditText.setText(content);
+                    mContentEditText.setSelection(cursorPos + spacing + 1);
                 }
             }
 
@@ -100,40 +113,42 @@ public class NotePlainEditorFragment extends Fragment {
 
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
-                int numTab = tab.getPosition();
-                if (mContentEditText.hasFocus()) {
+                onTabSelected(tab);
+            }
+        });
+
+        mContentEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                if (before == 0 && count == 1 && s.charAt(start) == '\n') {
+                    String spaces = new String(new char[spacing]).replace("\0", " ");
                     int cursorPos = mContentEditText.getSelectionStart();
                     String content = mContentEditText.getText().toString();
-                    //StringBuilder sb = new StringBuilder();
-                    //sb.insert(cursorPos, keys[numTab]);
-                    content = new StringBuffer(content).insert(cursorPos, keys[numTab]).toString();
+                    content = new StringBuffer(content).insert(cursorPos, spaces).toString();
                     mContentEditText.setText(content);
-                    mContentEditText.setSelection(cursorPos + 1);
-                } else {
-                    String content = mContentEditText.getText().toString() + keys[numTab];
-                    mContentEditText.setText(content);
-                    mContentEditText.setSelection(content.length());
+                    mContentEditText.setSelection(cursorPos + spacing);
                 }
             }
-        });
-        /*tabLayout.getChildAt(3).setOnClickListener(new View.OnClickListener() {
+
             @Override
-            public void onClick(View v) {
-                Log.d("TAG", "Clicked tab : " + tabLayout.getSelectedTabPosition());
-                //tabHost.setCurrentTab(0);
+            public void beforeTextChanged(CharSequence s, int start, int count,
+                                          int after) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
             }
         });
-*/
+
         return mRootView;
     }
 
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getActivity().getSupportFragmentManager());
-        adapter.addFragment(new Test(), "{");
-        adapter.addFragment(new Test(), "}");
-        adapter.addFragment(new Test(), "(");
-        adapter.addFragment(new Test(), ")");
-        adapter.addFragment(new Test(), ";");
+        for (String key : keys) {
+            adapter.addFragment(new Test(), key);
+        }
         viewPager.setAdapter(adapter);
     }
 
@@ -204,7 +219,6 @@ public class NotePlainEditorFragment extends Fragment {
                     ((InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE)).
                             hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
                 }
-
                 if (saveNote()) {
                     makeSnackbar(mCurrentNote != null ? "Code updated" : "Code saved");
                 }
