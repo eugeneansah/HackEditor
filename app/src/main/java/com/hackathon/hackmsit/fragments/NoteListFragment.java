@@ -13,12 +13,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.hackathon.hackmsit.data.NoteManager;
-import com.melnykov.fab.FloatingActionButton;
 import com.hackathon.hackmsit.R;
-import com.hackathon.hackmsit.activities.NoteEditorActivity;
+import com.hackathon.hackmsit.activities.NotePlainEditorActivity;
 import com.hackathon.hackmsit.adapter.NoteListAdapter;
+import com.hackathon.hackmsit.data.NoteManager;
 import com.hackathon.hackmsit.models.Note;
+import com.melnykov.fab.FloatingActionButton;
 
 import java.util.List;
 
@@ -81,7 +81,7 @@ public class NoteListFragment extends Fragment {
                 if (child != null && mGestureDetector.onTouchEvent(motionEvent)) {
                     int position = recyclerView.getChildLayoutPosition(child);
                     Note selectedNote = mNotes.get(position);
-                    Intent editorIntent = new Intent(getActivity(), NoteEditorActivity.class);
+                    Intent editorIntent = new Intent(getActivity(), NotePlainEditorActivity.class);
                     editorIntent.putExtra("id", selectedNote.getId());
                     startActivity(editorIntent);
                 }
