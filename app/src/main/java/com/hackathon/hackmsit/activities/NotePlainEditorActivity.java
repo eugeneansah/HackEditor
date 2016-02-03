@@ -18,7 +18,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.Html;
-import android.text.Spannable;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -37,11 +36,9 @@ import com.hackathon.hackmsit.data.NoteManager;
 import com.hackathon.hackmsit.fragments.Test;
 import com.hackathon.hackmsit.models.Note;
 import com.hackathon.hackmsit.utilities.Constants;
-import com.hackathon.hackmsit.utilities.SpaceTokenizer;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class NotePlainEditorActivity extends AppCompatActivity {
 
@@ -64,6 +61,7 @@ public class NotePlainEditorActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("aakash", "onCeate was called ");
         setContentView(R.layout.activity_note_plain_editor);
 
         args = getIntent().getExtras();
@@ -230,9 +228,23 @@ public class NotePlainEditorActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+
+        Log.d("aakash" , "onResume was called");
         if (mCurrentNote != null) {
             populateFields();
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.d("aakash", "onSaveInstanceState was called");
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        Log.d("aakash", "onRestoreInstanceState was called");
     }
 
     @Override
@@ -265,10 +277,20 @@ public class NotePlainEditorActivity extends AppCompatActivity {
                 break;
             case R.id.action_compile:
                 //compile code
-                startActivity(new Intent(this, CompileActivity.class));
+                view = this.getCurrentFocus();
+                if (view != null) {
+                    ((InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE)).
+                            hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                }
+                if (saveNote()) {
+                    //makeSnackbar(mCurrentNote != null ? "Code updated" : "Code saved");
+                    startActivity(new Intent(this, CompileActivity.class));
+                }
+                //startActivity(new Intent(this, CompileActivity.class));
         }
         return super.onOptionsItemSelected(item);
     }
+
 
     private void makeSnackbar(String message) {
         Snackbar snackbar = Snackbar
