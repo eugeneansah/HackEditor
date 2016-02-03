@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -19,13 +18,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.Html;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,24 +30,20 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.MultiAutoCompleteTextView;
-import android.widget.TextView;
 
 import com.hackathon.hackmsit.R;
 import com.hackathon.hackmsit.data.NoteManager;
 import com.hackathon.hackmsit.fragments.Test;
 import com.hackathon.hackmsit.models.Note;
 import com.hackathon.hackmsit.utilities.Constants;
-import com.hackathon.hackmsit.utilities.SpaceTokenizer;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class NotePlainEditorActivity extends AppCompatActivity {
 
     private EditText mTitleEditText;
-    TextWatcher tt = null;
+    TextWatcher tt=null;
     private MultiAutoCompleteTextView mCodeEditText;
     private Note mCurrentNote = null;
     Bundle args;
@@ -60,8 +51,8 @@ public class NotePlainEditorActivity extends AppCompatActivity {
     private CoordinatorLayout mCoordinatorLayout;
     private String[] keys = {"{", "}", "(", ")", ";"};
 
-    private int spacing, currPosition;
-    private SpannableStringBuilder bs;
+    private int spacing;
+    Spanned bs;
 
     public NotePlainEditorActivity() {
         // Required empty public constructor
@@ -94,7 +85,7 @@ public class NotePlainEditorActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(NotePlainEditorActivity.this, android.R.layout.simple_list_item_1, Constants.keyWords);
         mCodeEditText.setAdapter(adapter);
         mCodeEditText.setThreshold(2);
-        mCodeEditText.setTokenizer(new SpaceTokenizer());
+        mCodeEditText.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
         mCodeEditText.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int index, long position) {
 
@@ -123,18 +114,17 @@ public class NotePlainEditorActivity extends AppCompatActivity {
 
                 //Indentation method
                 if (keys[numTab].equals("{")) {
-                    spacing += 4;
+                    spacing += 8;
                     Log.d("spacing", String.valueOf(spacing));
                 } else if (keys[numTab].equals("}") && spacing >= 4) {
-                    spacing -= 4;
+                    spacing -= 8;
                     Log.d("spacing", String.valueOf(spacing));
                     int cursorPos = mCodeEditText.getSelectionStart();
                     String content = mCodeEditText.getText().toString();
                     String spaces = new String(new char[spacing]).replace("\0", " ");
                     content = new StringBuffer(content).insert(cursorPos - 1, "\n" + spaces).toString();
                     mCodeEditText.setText(content);
-                    mCodeEditText.setSelection(cursorPos + 1 + spacing);
-                    //Log.d("ishaan",""+mCodeEditText.getText().length());
+                    mCodeEditText.setSelection(cursorPos + spacing + 1);
                 }
             }
 
@@ -153,30 +143,20 @@ public class NotePlainEditorActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
 
                 if (before == 0 && count == 1 && s.charAt(start) == '\n') {
-                    if (spacing != 0) {
-                        String spaces = new String(new char[spacing]).replace("\0", " ");
-                        int cursorPos = mCodeEditText.getSelectionStart();
-                        //int cursorPos = mCodeEditText.getText().length();
-                        String content = mCodeEditText.getText().toString();
-                        content = new StringBuffer(content).insert(cursorPos, spaces).toString();
-                        mCodeEditText.setText(content);
-                        mCodeEditText.setSelection(cursorPos + spacing - 1);
-                    }
-                } else {
+                    String spaces = new String(new char[spacing]).replace("\0", " ");
                     int cursorPos = mCodeEditText.getSelectionStart();
-                    mCodeEditText.removeTextChangedListener(tt);
-                    bs = matchText(mCodeEditText.getText().toString(), mCodeEditText.getSelectionStart());
-                    mCodeEditText.setText(bs);
-                    mCodeEditText.setSelection(cursorPos);
-                    mCodeEditText.addTextChangedListener(tt);
-                }
+                    String content = mCodeEditText.getText().toString();
+                    content = new StringBuffer(content).insert(cursorPos, spaces).toString();
+                    mCodeEditText.setText(content);
+                    mCodeEditText.setSelection(cursorPos + spacing);
 
-                /*currPosition = mCodeEditText.getSelectionStart();
+
+                }
                 mCodeEditText.removeTextChangedListener(tt);
-                //Log.d("ishaan", s.toString());
-                bs = matchtext(s.toString(), currPosition);
+                Log.d("ishaan", s.toString());
+                bs = matchtext(s.toString());
                 mCodeEditText.setText(bs);
-                mCodeEditText.addTextChangedListener(tt);*/
+                mCodeEditText.addTextChangedListener(tt);
 
                 //mCodeEditText.setText(bs);
                 //mCodeEditText.setText(matchtext(mCodeEditText.getText().toString()));
@@ -192,9 +172,9 @@ public class NotePlainEditorActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
 
                 // bs = matchtext(mCodeEditText.getText().toString());
-
+                //mCodeEditText.setText(bs);
                 //Log.d("ishaan",bs);
-                //CodeEditText.setSelection(currPosition);
+                mCodeEditText.setSelection(s.length());
 
             }
         };
@@ -248,6 +228,8 @@ public class NotePlainEditorActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+
+        Log.d("aakash" , "onResume was called");
         if (mCurrentNote != null) {
             populateFields();
         }
@@ -256,13 +238,13 @@ public class NotePlainEditorActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        //Log.d("aakash", "onSaveInstanceState was called");
+        Log.d("aakash", "onSaveInstanceState was called");
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        //Log.d("aakash", "onRestoreInstanceState was called");
+        Log.d("aakash", "onRestoreInstanceState was called");
     }
 
     @Override
@@ -315,6 +297,7 @@ public class NotePlainEditorActivity extends AppCompatActivity {
                 .make(mCoordinatorLayout, message, Snackbar.LENGTH_SHORT);
         snackbar.show();
     }
+
 
 
     private void getCurrentNote() {
@@ -390,42 +373,19 @@ public class NotePlainEditorActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
-    SpannableStringBuilder matchText(String s, int pos) {
-
+    Spanned matchtext(String s)
+    {
         //Pattern p =Pattern.compile(check[0]);
-        SpannableStringBuilder sb = new SpannableStringBuilder(s);
-        for (int i = 0; i < Constants.keyWords.length; i++) {
-            Pattern p = Pattern.compile(Constants.keyWords[i], Pattern.CASE_INSENSITIVE);
-            Matcher m = p.matcher(s);
-            while (m.find()) {
-                //String word = m.group();
-                //String word1 = notes.substring(m.start(), m.end());
-                sb.setSpan(new ForegroundColorSpan(Color.rgb(255, 0, 0)), m.start(), m.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            }
+
+        String a=s;
+        for(int i=0;i<Constants.keyWords.length;i++) {
+            a = a.replaceAll(Constants.keyWords[i], "<font color=\"#c5c5c5\">" + Constants.keyWords[i] + "</font>");
+            //a = s.replaceAll(";", "<font color=\"#c5c5c5\">" + ";" + "</font>");
         }
+        Spanned ab = Html.fromHtml(a);
+        /*SpannableString sb=new SpannableString("hello");
+        sb.setSpan(new ForegroundColorSpan(Color.BLUE), 15, 30, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);*/
+        return ab;
 
-        /*Spannable abc = new SpannableString(s);
-        //String a = s;
-        for (int i = 0; i < Constants.keyWords.length; i++) {
-            if (pos - Constants.keyWords[i].length() >= 0) {
-                int j = s.indexOf(Constants.keyWords[i]);
-                if (j != -1) {
-                    if ((s.subSequence(j, pos)).equals(Constants.keyWords[i]))
-                        abc.setSpan(new ForegroundColorSpan(Color.BLUE), j, pos, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                    //a = a.replaceAll(Constants.keyWords[i], "<font color=\"#c5c5c5\">" + Constants.keyWords[i] + "</font>");
-                    //a = s.replaceAll(";", "<font color=\"#c5c5c5\">" + ";" + "</font>");
-                }
-            }
-        }*/
-        //abc = setSpan(a);
-        return sb;
-
-    }
-
-    private void setColor(MultiAutoCompleteTextView view, String fulltext, String subtext, int color) {
-        view.setText(fulltext, MultiAutoCompleteTextView.BufferType.SPANNABLE);
-        Spannable str = (Spannable) view.getText();
-        int i = fulltext.indexOf(subtext);
-        str.setSpan(new ForegroundColorSpan(color), i, i + subtext.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
     }
 }
