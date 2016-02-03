@@ -1,4 +1,4 @@
-package com.hackathon.hackmsit.fragments;
+package com.hackathon.hackmsit.activities;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,16 +14,15 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -31,8 +30,8 @@ import android.widget.EditText;
 import android.widget.MultiAutoCompleteTextView;
 
 import com.hackathon.hackmsit.R;
-import com.hackathon.hackmsit.activities.MainActivity;
 import com.hackathon.hackmsit.data.NoteManager;
+import com.hackathon.hackmsit.fragments.Test;
 import com.hackathon.hackmsit.models.Note;
 import com.hackathon.hackmsit.utilities.Constants;
 import com.hackathon.hackmsit.utilities.SpaceTokenizer;
@@ -40,7 +39,7 @@ import com.hackathon.hackmsit.utilities.SpaceTokenizer;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NotePlainEditorFragment extends Fragment {
+public class NotePlainEditorActivity extends AppCompatActivity {
 
     private EditText mTitleEditText;
     private MultiAutoCompleteTextView mCodeEditText;
@@ -51,23 +50,119 @@ public class NotePlainEditorFragment extends Fragment {
     private String[] keys = {"{", "}", "(", ")", ";"};
     private int spacing;
 
-    public NotePlainEditorFragment() {
+    public NotePlainEditorActivity() {
         // Required empty public constructor
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
-        args = getArguments();
+        setContentView(R.layout.activity_note_plain_editor);
+
+        args = getIntent().getExtras();
+
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        /*setHasOptionsMenu(true);
+        args = getArguments();*/
         getCurrentNote();
+
+        mTitleEditText = (EditText) findViewById(R.id.edit_text_title);
+        //mContentEditText = (EditText) mRootView.findViewById(R.id.edit_text_code);
+        mCodeEditText = (MultiAutoCompleteTextView) findViewById(R.id.autoCompleteTextView1);
+        inputLayoutTitle = (TextInputLayout) findViewById(R.id.input_layout_title);
+        //inputLayoutCode = (TextInputLayout) mRootView.findViewById(R.id.input_layout_code);
+        mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+        spacing = 0;
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, Constants.keyWords);
+        mCodeEditText.setAdapter(adapter);
+        mCodeEditText.setThreshold(3);
+        mCodeEditText.setTokenizer(new SpaceTokenizer());
+        mCodeEditText.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view, int index, long position) {
+
+            }
+        });
+        ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
+        setupViewPager(viewPager);
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(viewPager);
+        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                int numTab = tab.getPosition();
+                if (mCodeEditText.hasFocus()) {
+                    int cursorPos = mCodeEditText.getSelectionStart();
+                    String content = mCodeEditText.getText().toString();
+                    content = new StringBuffer(content).insert(cursorPos, keys[numTab]).toString();
+                    mCodeEditText.setText(content);
+                    mCodeEditText.setSelection(cursorPos + 1);
+                } else {
+                    String content = mCodeEditText.getText().toString() + keys[numTab];
+                    mCodeEditText.setText(content);
+                    mCodeEditText.setSelection(content.length());
+                }
+
+                //Indentation method
+                if (keys[numTab].equals("{")) {
+                    spacing += 8;
+                    Log.d("spacing", String.valueOf(spacing));
+                } else if (keys[numTab].equals("}") && spacing >= 4) {
+                    spacing -= 8;
+                    Log.d("spacing", String.valueOf(spacing));
+                    int cursorPos = mCodeEditText.getSelectionStart();
+                    String content = mCodeEditText.getText().toString();
+                    String spaces = new String(new char[spacing]).replace("\0", " ");
+                    content = new StringBuffer(content).insert(cursorPos - 1, "\n" + spaces).toString();
+                    mCodeEditText.setText(content);
+                    mCodeEditText.setSelection(cursorPos + spacing + 1);
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+                onTabSelected(tab);
+            }
+        });
+
+        mCodeEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                if (before == 0 && count == 1 && s.charAt(start) == '\n') {
+                    String spaces = new String(new char[spacing]).replace("\0", " ");
+                    int cursorPos = mCodeEditText.getSelectionStart();
+                    String content = mCodeEditText.getText().toString();
+                    content = new StringBuffer(content).insert(cursorPos, spaces).toString();
+                    mCodeEditText.setText(content);
+                    mCodeEditText.setSelection(cursorPos + spacing);
+                }
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count,
+                                          int after) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
     }
 
-    @Override
+    /*@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View mRootView = inflater.inflate(R.layout.fragment_note_plain_editor, container, false);
+        View mRootView = inflater.inflate(R.layout.activity_note_plain_editor, container, false);
         mTitleEditText = (EditText) mRootView.findViewById(R.id.edit_text_title);
         //mContentEditText = (EditText) mRootView.findViewById(R.id.edit_text_code);
         mCodeEditText = (MultiAutoCompleteTextView) mRootView.findViewById(R.id.autoCompleteTextView1);
@@ -76,7 +171,7 @@ public class NotePlainEditorFragment extends Fragment {
         mCoordinatorLayout = (CoordinatorLayout) mRootView.findViewById(R.id.coordinatorLayout);
         spacing = 0;
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, Constants.keyWords);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, Constants.keyWords);
         mCodeEditText.setAdapter(adapter);
         mCodeEditText.setThreshold(3);
         mCodeEditText.setTokenizer(new SpaceTokenizer());
@@ -157,10 +252,10 @@ public class NotePlainEditorFragment extends Fragment {
         });
 
         return mRootView;
-    }
+    }*/
 
     private void setupViewPager(ViewPager viewPager) {
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getActivity().getSupportFragmentManager());
+        ViewPagerAdapter adapter = new ViewPagerAdapter(this.getSupportFragmentManager());
         for (String key : keys) {
             adapter.addFragment(new Test(), key);
         }
@@ -196,10 +291,10 @@ public class NotePlainEditorFragment extends Fragment {
         }
     }
 
-    @Override
+    /*@Override
     public void onDetach() {
         super.onDetach();
-    }
+    }*/
 
     @Override
     public void onResume() {
@@ -210,10 +305,9 @@ public class NotePlainEditorFragment extends Fragment {
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        menu.clear();
-        inflater.inflate(R.menu.menu_note_edit_plain, menu);
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_note_edit_plain, menu);
+        return true;
     }
 
     @Override
@@ -229,15 +323,18 @@ public class NotePlainEditorFragment extends Fragment {
                 break;
             case R.id.action_save:
                 //save note
-                View view = getActivity().getCurrentFocus();
+                View view = this.getCurrentFocus();
                 if (view != null) {
-                    ((InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE)).
+                    ((InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE)).
                             hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
                 }
                 if (saveNote()) {
                     makeSnackbar(mCurrentNote != null ? "Code updated" : "Code saved");
                 }
                 break;
+            case R.id.action_compile:
+                //compile code
+                startActivity(new Intent(this, CompileActivity.class));
         }
         return super.onOptionsItemSelected(item);
     }
@@ -248,8 +345,8 @@ public class NotePlainEditorFragment extends Fragment {
         snackbar.show();
     }
 
-    public static NotePlainEditorFragment newInstance(long id) {
-        NotePlainEditorFragment fragment = new NotePlainEditorFragment();
+    /*public static NotePlainEditorActivity newInstance(long id) {
+        NotePlainEditorActivity activity = new NotePlainEditorActivity();
 
         if (id > 0) {
             Bundle bundle = new Bundle();
@@ -257,13 +354,13 @@ public class NotePlainEditorFragment extends Fragment {
             fragment.setArguments(bundle);
         }
         return fragment;
-    }
+    }*/
 
     private void getCurrentNote() {
         if (args != null && args.containsKey("id")) {
             long id = args.getLong("id", 0);
             if (id > 0) {
-                mCurrentNote = NoteManager.newInstance(getActivity()).getNote(id);
+                mCurrentNote = NoteManager.newInstance(this).getNote(id);
             }
         }
     }
@@ -287,12 +384,12 @@ public class NotePlainEditorFragment extends Fragment {
         if (mCurrentNote != null) {
             mCurrentNote.setContent(content);
             mCurrentNote.setTitle(title);
-            NoteManager.newInstance(getActivity()).update(mCurrentNote);
+            NoteManager.newInstance(this).update(mCurrentNote);
         } else {
             Note note = new Note();
             note.setTitle(title);
             note.setContent(content);
-            NoteManager.newInstance(getActivity()).create(note);
+            NoteManager.newInstance(this).create(note);
         }
         return true;
     }
@@ -304,21 +401,21 @@ public class NotePlainEditorFragment extends Fragment {
 
     public void promptForDelete() {
         final String titleOfNoteTobeDeleted = mCurrentNote.getTitle();
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
         alertDialog.setTitle("Confirm Action");
         alertDialog.setMessage("Delete " + titleOfNoteTobeDeleted + "?");
         alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                NoteManager.newInstance(getActivity()).delete(mCurrentNote);
+                NoteManager.newInstance(NotePlainEditorActivity.this).delete(mCurrentNote);
 
-                SharedPreferences prefs = getActivity().getApplicationContext().getSharedPreferences("pref", 0);
+                SharedPreferences prefs = getApplicationContext().getSharedPreferences("pref", 0);
                 SharedPreferences.Editor editor = prefs.edit();
                 editor.putString("deleted", "1");
                 editor.apply();
                 //makeSnackbar("Code deleted");
                 //startActivity(new Intent(getActivity(), MainActivity.class));
-                Intent intent = new Intent(getActivity(), MainActivity.class);
+                Intent intent = new Intent(NotePlainEditorActivity.this, MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
             }

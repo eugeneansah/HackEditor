@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, NoteEditorActivity.class));
+                startActivity(new Intent(MainActivity.this, NotePlainEditorActivity.class));
             }
         });
 
