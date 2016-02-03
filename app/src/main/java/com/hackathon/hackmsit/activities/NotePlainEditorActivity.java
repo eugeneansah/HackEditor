@@ -17,6 +17,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
+import android.text.Html;
+import android.text.Spannable;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -38,17 +41,21 @@ import com.hackathon.hackmsit.utilities.SpaceTokenizer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class NotePlainEditorActivity extends AppCompatActivity {
 
     private EditText mTitleEditText;
+    TextWatcher tt=null;
     private MultiAutoCompleteTextView mCodeEditText;
     private Note mCurrentNote = null;
     Bundle args;
     private TextInputLayout inputLayoutTitle;
     private CoordinatorLayout mCoordinatorLayout;
     private String[] keys = {"{", "}", "(", ")", ";"};
+
     private int spacing;
+    Spanned bs;
 
     public NotePlainEditorActivity() {
         // Required empty public constructor
@@ -77,10 +84,10 @@ public class NotePlainEditorActivity extends AppCompatActivity {
         mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
         spacing = 0;
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, Constants.keyWords);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(NotePlainEditorActivity.this, android.R.layout.simple_list_item_1, Constants.keyWords);
         mCodeEditText.setAdapter(adapter);
-        mCodeEditText.setThreshold(3);
-        mCodeEditText.setTokenizer(new SpaceTokenizer());
+        mCodeEditText.setThreshold(2);
+        mCodeEditText.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
         mCodeEditText.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int index, long position) {
 
@@ -133,7 +140,7 @@ public class NotePlainEditorActivity extends AppCompatActivity {
             }
         });
 
-        mCodeEditText.addTextChangedListener(new TextWatcher() {
+        tt = new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
 
@@ -144,7 +151,18 @@ public class NotePlainEditorActivity extends AppCompatActivity {
                     content = new StringBuffer(content).insert(cursorPos, spaces).toString();
                     mCodeEditText.setText(content);
                     mCodeEditText.setSelection(cursorPos + spacing);
+
+
                 }
+                mCodeEditText.removeTextChangedListener(tt);
+                Log.d("ishaan", s.toString());
+                bs = matchtext(s.toString());
+                mCodeEditText.setText(bs);
+                mCodeEditText.addTextChangedListener(tt);
+
+                //mCodeEditText.setText(bs);
+                //mCodeEditText.setText(matchtext(mCodeEditText.getText().toString()));
+
             }
 
             @Override
@@ -154,105 +172,18 @@ public class NotePlainEditorActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
+
+                // bs = matchtext(mCodeEditText.getText().toString());
+                //mCodeEditText.setText(bs);
+                //Log.d("ishaan",bs);
+                mCodeEditText.setSelection(s.length());
+
             }
-        });
+        };
+
+        mCodeEditText.addTextChangedListener(tt);
+
     }
-
-    /*@Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-
-        View mRootView = inflater.inflate(R.layout.activity_note_plain_editor, container, false);
-        mTitleEditText = (EditText) mRootView.findViewById(R.id.edit_text_title);
-        //mContentEditText = (EditText) mRootView.findViewById(R.id.edit_text_code);
-        mCodeEditText = (MultiAutoCompleteTextView) mRootView.findViewById(R.id.autoCompleteTextView1);
-        inputLayoutTitle = (TextInputLayout) mRootView.findViewById(R.id.input_layout_title);
-        //inputLayoutCode = (TextInputLayout) mRootView.findViewById(R.id.input_layout_code);
-        mCoordinatorLayout = (CoordinatorLayout) mRootView.findViewById(R.id.coordinatorLayout);
-        spacing = 0;
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, Constants.keyWords);
-        mCodeEditText.setAdapter(adapter);
-        mCodeEditText.setThreshold(3);
-        mCodeEditText.setTokenizer(new SpaceTokenizer());
-        mCodeEditText.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view, int index, long position) {
-
-            }
-        });
-        ViewPager viewPager = (ViewPager) mRootView.findViewById(R.id.viewpager);
-        setupViewPager(viewPager);
-
-        TabLayout tabLayout = (TabLayout) mRootView.findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(viewPager);
-        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                int numTab = tab.getPosition();
-                if (mCodeEditText.hasFocus()) {
-                    int cursorPos = mCodeEditText.getSelectionStart();
-                    String content = mCodeEditText.getText().toString();
-                    content = new StringBuffer(content).insert(cursorPos, keys[numTab]).toString();
-                    mCodeEditText.setText(content);
-                    mCodeEditText.setSelection(cursorPos + 1);
-                } else {
-                    String content = mCodeEditText.getText().toString() + keys[numTab];
-                    mCodeEditText.setText(content);
-                    mCodeEditText.setSelection(content.length());
-                }
-
-                //Indentation method
-                if (keys[numTab].equals("{")) {
-                    spacing += 8;
-                    Log.d("spacing", String.valueOf(spacing));
-                } else if (keys[numTab].equals("}") && spacing >= 4) {
-                    spacing -= 8;
-                    Log.d("spacing", String.valueOf(spacing));
-                    int cursorPos = mCodeEditText.getSelectionStart();
-                    String content = mCodeEditText.getText().toString();
-                    String spaces = new String(new char[spacing]).replace("\0", " ");
-                    content = new StringBuffer(content).insert(cursorPos - 1, "\n" + spaces).toString();
-                    mCodeEditText.setText(content);
-                    mCodeEditText.setSelection(cursorPos + spacing + 1);
-                }
-            }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-                onTabSelected(tab);
-            }
-        });
-
-        mCodeEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-                if (before == 0 && count == 1 && s.charAt(start) == '\n') {
-                    String spaces = new String(new char[spacing]).replace("\0", " ");
-                    int cursorPos = mCodeEditText.getSelectionStart();
-                    String content = mCodeEditText.getText().toString();
-                    content = new StringBuffer(content).insert(cursorPos, spaces).toString();
-                    mCodeEditText.setText(content);
-                    mCodeEditText.setSelection(cursorPos + spacing);
-                }
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count,
-                                          int after) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        });
-
-        return mRootView;
-    }*/
 
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(this.getSupportFragmentManager());
@@ -345,16 +276,7 @@ public class NotePlainEditorActivity extends AppCompatActivity {
         snackbar.show();
     }
 
-    /*public static NotePlainEditorActivity newInstance(long id) {
-        NotePlainEditorActivity activity = new NotePlainEditorActivity();
 
-        if (id > 0) {
-            Bundle bundle = new Bundle();
-            bundle.putLong("id", id);
-            fragment.setArguments(bundle);
-        }
-        return fragment;
-    }*/
 
     private void getCurrentNote() {
         if (args != null && args.containsKey("id")) {
@@ -427,5 +349,19 @@ public class NotePlainEditorActivity extends AppCompatActivity {
             }
         });
         alertDialog.show();
+    }
+
+    Spanned matchtext(String s)
+    {
+        //Pattern p =Pattern.compile(check[0]);
+
+        String a=s;
+        for(int i=0;i<Constants.keyWords.length;i++) {
+            a = a.replaceAll(Constants.keyWords[i], "<font color=\"#c5c5c5\">" + Constants.keyWords[i] + "</font>");
+            //a = s.replaceAll(";", "<font color=\"#c5c5c5\">" + ";" + "</font>");
+        }
+        Spanned ab = Html.fromHtml(a);
+        return ab;
+
     }
 }

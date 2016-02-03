@@ -44,7 +44,7 @@
                 android:background="#00FFFFFF"
                 android:gravity="top"
                 android:hint="@string/enter_code"
-                android:inputType="textMultiLine|textNoSuggestions|textVisiblePassword"
+                android:inputType="textMultiLine|textVisiblePassword"
                 android:padding="@dimen/margin_padding_tiny"
                 android:scrollbarFadeDuration="5000"
                 android:scrollbars="vertical" />
