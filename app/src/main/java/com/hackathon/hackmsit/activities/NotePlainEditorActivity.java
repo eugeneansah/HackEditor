@@ -298,7 +298,10 @@ public class NotePlainEditorActivity extends AppCompatActivity {
                 }
                 if (saveNote()) {
                     //makeSnackbar(mCurrentNote != null ? "Code updated" : "Code saved");
-                    startActivity(new Intent(this, CompileActivity.class));
+                    String s = mCodeEditText.getText().toString();
+                    Intent i = new Intent(this, CompileActivity.class);
+                    i.putExtra("code", s);
+                    startActivity(i);
                 }
                 //startActivity(new Intent(this, CompileActivity.class));
         }
