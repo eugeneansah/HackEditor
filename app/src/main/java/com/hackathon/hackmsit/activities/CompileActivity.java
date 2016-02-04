@@ -99,18 +99,15 @@ public class CompileActivity extends AppCompatActivity {
                                     JSONObject abc = new JSONObject(response);
                                     js = abc;
                                     //Log.d("abc", String.valueOf(js.getJSONObject("result").getJSONArray("stderr").getBoolean(0)));
-                                    try {
+
                                         if (js.getJSONObject("result").getString("stderr").equals("null") ) {
                                             Log.d("aakash", "inside error null");
                                             output = "Error in Code";
                                         }
-                                    } catch (JSONException e) {
-                                        if (!js.getJSONObject("result").getJSONArray("stderr").getBoolean(0)) {
-                                            output = js.getJSONObject("result").getJSONArray("stdout").get(0).toString();
-                                            Log.d("abc", output);
-                                        } else
-                                            output = "Error";
-                                    }
+                                        else{
+                                            output=js.getJSONObject("result").getJSONArray("stdout").get(0).toString();
+                                        }
+
                                     tv.setText(output);
                                 } catch (JSONException e) {
                                     e.printStackTrace();
