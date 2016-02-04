@@ -36,7 +36,7 @@ public class CompileActivity extends AppCompatActivity {
         return date;
     }
 
-    String code, testCase, output;
+    String code, testCase, output, ext;
     String url = "http://api.hackerrank.com/checker/submission.json";
     JSONObject jsonObject = null;
     EditText codeContainer;
@@ -54,6 +54,7 @@ public class CompileActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         Bundle args = getIntent().getExtras();
         code = args.getString("code");
+        ext = args.getString("ext");
         tv = (TextView) findViewById(R.id.outputView);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -100,13 +101,13 @@ public class CompileActivity extends AppCompatActivity {
                                     js = abc;
                                     //Log.d("abc", String.valueOf(js.getJSONObject("result").getJSONArray("stderr").getBoolean(0)));
 
-                                        if (js.getJSONObject("result").getString("stderr").equals("null") ) {
-                                            Log.d("aakash", "inside error null");
-                                            output = "Error in Code";
-                                        }
-                                        else{
-                                            output=js.getJSONObject("result").getJSONArray("stdout").get(0).toString();
-                                        }
+                                    if (js.getJSONObject("result").getString("stderr").equals("null") ) {
+                                        Log.d("aakash", "inside error null");
+                                        output = "Error in Code";
+                                    }
+                                    else{
+                                        output=js.getJSONObject("result").getJSONArray("stdout").get(0).toString();
+                                    }
 
                                     tv.setText(output);
                                 } catch (JSONException e) {
@@ -134,7 +135,7 @@ public class CompileActivity extends AppCompatActivity {
                     protected Map<String, String> getParams() throws AuthFailureError {
                         Map<String, String> params = new HashMap<String, String>();
                         params.put("source", code);
-                        params.put("lang", "1");
+                        params.put("lang", ext);
                         params.put("testcases", "[" + "\"" + testCase + "\"" + "]");
                         params.put("api_key", "hackerrank|295035-620|78f4dce9b31d6e8e39110ffd911b7f20e1538084");
                         Log.d("aakash", "params = " + params);
@@ -147,7 +148,7 @@ public class CompileActivity extends AppCompatActivity {
                         10000,
                         DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                         DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
+                jsonObjRequest.setShouldCache(false);
                 queue.add(jsonObjRequest);
 
 
@@ -213,6 +214,5 @@ public class CompileActivity extends AppCompatActivity {
             return null;
         }*/
 }
-
 
 

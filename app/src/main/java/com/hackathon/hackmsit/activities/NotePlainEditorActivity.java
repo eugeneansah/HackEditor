@@ -56,7 +56,8 @@ public class NotePlainEditorActivity extends AppCompatActivity {
     private CoordinatorLayout mCoordinatorLayout;
     private String[] keys = {"{", "}", "(", ")", ";"};
 
-    private int spacing, currPosition;
+    private int spacing;
+    String extCode;
     private SpannableStringBuilder bs;
 
     public NotePlainEditorActivity() {
@@ -301,6 +302,7 @@ public class NotePlainEditorActivity extends AppCompatActivity {
                     String s = mCodeEditText.getText().toString();
                     Intent i = new Intent(this, CompileActivity.class);
                     i.putExtra("code", s);
+                    i.putExtra("ext", extCode);
                     startActivity(i);
                 }
                 //startActivity(new Intent(this, CompileActivity.class));
@@ -332,6 +334,20 @@ public class NotePlainEditorActivity extends AppCompatActivity {
             return false;
         } else {
             inputLayoutTitle.setErrorEnabled(false);
+            int i = title.indexOf(".");
+            if (i != -1) {
+                String ext = title.substring(i + 1, title.length());
+                if (ext.equals("c")) {
+                    extCode = "1";
+                } else if (ext.equals("py")) {
+                    extCode = "5";
+                } else if (ext.equals("cpp")) {
+                    extCode = "2";
+                }
+            } else {
+                inputLayoutTitle.setError("Name error");
+            }
+
         }
 
         String content = mCodeEditText.getText().toString().trim();
