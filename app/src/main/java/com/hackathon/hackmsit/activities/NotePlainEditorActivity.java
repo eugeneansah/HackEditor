@@ -161,7 +161,7 @@ public class NotePlainEditorActivity extends AppCompatActivity {
                 } else {
                     int cursorPos = mCodeEditText.getSelectionStart();
                     mCodeEditText.removeTextChangedListener(tt);
-                    bs = matchText(mCodeEditText.getText().toString(), mCodeEditText.getSelectionStart());
+                    bs = matchText(mCodeEditText.getText().toString());
                     mCodeEditText.setText(bs);
                     mCodeEditText.setSelection(cursorPos);
                     mCodeEditText.addTextChangedListener(tt);
@@ -389,20 +389,37 @@ public class NotePlainEditorActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
-    SpannableStringBuilder matchText(String s, int pos) {
+    SpannableStringBuilder matchText(String s) {
 
         //Pattern p =Pattern.compile(check[0]);
         SpannableStringBuilder sb = new SpannableStringBuilder(s);
         for (int i = 0; i < Constants.keyWords.length; i++) {
             Pattern p = Pattern.compile(Constants.keyWords[i], Pattern.CASE_INSENSITIVE);
+            //Pattern regex = Pattern.compile("[^A-Za-z0-9]");
+            Matcher m = p.matcher(s);
+            //Matcher m2= regex.matcher(s);
+            /*while(!m2.find()){
+                sb.setSpan(new ForegroundColorSpan(Color.rgb(255, 55, 255)), m2.start(), m2.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            }*/
+            while (m.find()) {
+                if (Constants.keyWords[i].equals("int "))
+                    sb.setSpan(new ForegroundColorSpan(Color.rgb(128, 128, 255)), m.start(), m.end() - 1, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                else
+                    sb.setSpan(new ForegroundColorSpan(Color.rgb(128, 128, 255)), m.start(), m.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+
+            }
+        }
+
+        /*for (int i = 0; i < Constants.keyWords2.length; i++) {
+            Pattern p = Pattern.compile(Constants.keyWords2[i], Pattern.CASE_INSENSITIVE);
             Matcher m = p.matcher(s);
             while (m.find()) {
                 //String word = m.group();
                 //String word1 = notes.substring(m.start(), m.end());
-                sb.setSpan(new ForegroundColorSpan(Color.rgb(255, 0, 0)), m.start(), m.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                sb.setSpan(new ForegroundColorSpan(Color.rgb(255,0,0)), m.start(), m.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
             }
         }
-
+*/
         /*Spannable abc = new SpannableString(s);
         //String a = s;
         for (int i = 0; i < Constants.keyWords.length; i++) {
@@ -419,12 +436,5 @@ public class NotePlainEditorActivity extends AppCompatActivity {
         //abc = setSpan(a);
         return sb;
 
-    }
-
-    private void setColor(MultiAutoCompleteTextView view, String fulltext, String subtext, int color) {
-        view.setText(fulltext, MultiAutoCompleteTextView.BufferType.SPANNABLE);
-        Spannable str = (Spannable) view.getText();
-        int i = fulltext.indexOf(subtext);
-        str.setSpan(new ForegroundColorSpan(color), i, i + subtext.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
     }
 }

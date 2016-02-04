@@ -21,9 +21,17 @@ public class Constants {
 
     public static final String[] keyWords = {"auto", "break", "case", "char", "cin", "const",
             "continue", "cout", "default", "do", "double", "else", "enum", "extern", "float",
-            "for", "goto", "if", "int", "long", "main", "register", "return", "short",
+            "for", "goto", "if", "int ", "long", "main", "register", "return", "short",
             "signed", "sizeof", "static", "struct", "switch", "typedef", "union", "unsigned",
             "void", "volatile", "while"};
+
+    public static final String[] keyWords1 = {"auto", "break", "case", "char", "cin", "const",
+            "continue", "cout", "default", "do", "double", "else", "enum", "extern", "float",
+            "for", "goto", "if", "int", "long", "main", "register", "return", "short",
+            "signed", "sizeof", "static", "struct", "switch", "typedef", "union", "unsigned",
+            "void", "volatile", "while", "{","}",";",",","#","<",">","[","]"};
+
+    public  static  final  String[] keyWords2={"{","}",";",",","#","<",">","[","]"};
 
 
 }
