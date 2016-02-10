@@ -103,10 +103,13 @@ public class CompileActivity extends AppCompatActivity {
 
                                     if (js.getJSONObject("result").getString("stderr").equals("null") ) {
                                         Log.d("aakash", "inside error null");
-                                        output = "Error in Code";
+                                        String codeError;
+                                        codeError = js.getJSONObject("result").getString("compilemessage");
+                                        //Toast.makeText(CompileActivity.this, codeError, Toast.LENGTH_SHORT).show();
+                                        output = "Errors : \n" + codeError;
                                     }
                                     else{
-                                        output=js.getJSONObject("result").getJSONArray("stdout").get(0).toString();
+                                        output= "Ouput: \n" + js.getJSONObject("result").getJSONArray("stdout").get(0).toString();
                                     }
 
                                     tv.setText(output);
@@ -145,7 +148,7 @@ public class CompileActivity extends AppCompatActivity {
                 };
 
                 jsonObjRequest.setRetryPolicy(new DefaultRetryPolicy(
-                        10000,
+                        20000,
                         DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                         DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
                 jsonObjRequest.setShouldCache(false);
