@@ -20,21 +20,31 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="start"
-            android:hint="@string/enter_input"
-
-            />
+            android:hint="@string/enter_input"/>
 
     </android.support.design.widget.TextInputLayout>
 
     <TextView
+        android:id="@+id/outputStatic"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/outputView"
-        android:layout_marginTop="10dp"
-        android:layout_below="@+id/input_text_layout"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/input_text_layout"
+        android:layout_marginTop="10dp"
+        android:textColor="@color/accent"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/output" />
 
+    <TextView
+        android:id="@+id/outputView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:textSize="15dp"
+        android:layout_below="@+id/outputStatic"
+        android:text="@string/output_default"
+        android:layout_marginTop="6dp"/>
 
 </RelativeLayout>

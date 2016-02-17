@@ -18,18 +18,13 @@ import com.hackathon.hackmsit.activities.NotePlainEditorActivity;
 import com.hackathon.hackmsit.adapter.NoteListAdapter;
 import com.hackathon.hackmsit.data.NoteManager;
 import com.hackathon.hackmsit.models.Note;
-import com.melnykov.fab.FloatingActionButton;
 
 import java.util.List;
 
 public class NoteListFragment extends Fragment {
 
-    private FloatingActionButton mFab;
     private View mRootView;
     private List<Note> mNotes;
-    private RecyclerView mRecyclerView;
-    private NoteListAdapter mAdapter;
-    private RecyclerView.LayoutManager mLayoutManager;
     private TextView tvDefault;
 
     public NoteListFragment() {
@@ -39,30 +34,17 @@ public class NoteListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment and hold the reference
-        //in mRootView
         mRootView = inflater.inflate(R.layout.fragment_note_list, container, false);
-
-        /*mFab = (FloatingActionButton) mRootView.findViewById(R.id.fab);
-
-        mFab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(getActivity(), NoteEditorActivity.class));
-            }
-        });*/
-
         tvDefault = (TextView) mRootView.findViewById(R.id.tv_default);
         tvDefault.setVisibility(View.GONE);
-
         setupList();
         return mRootView;
     }
 
     private void setupList() {
-        mRecyclerView = (RecyclerView) mRootView.findViewById(R.id.note_recycler_view);
+        RecyclerView mRecyclerView = (RecyclerView) mRootView.findViewById(R.id.note_recycler_view);
         mRecyclerView.setHasFixedSize(true);
-        mLayoutManager = new LinearLayoutManager(getActivity());
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         final GestureDetector mGestureDetector =
@@ -83,6 +65,8 @@ public class NoteListFragment extends Fragment {
                     Note selectedNote = mNotes.get(position);
                     Intent editorIntent = new Intent(getActivity(), NotePlainEditorActivity.class);
                     editorIntent.putExtra("id", selectedNote.getId());
+                    editorIntent.putExtra("name", selectedNote.getTitle());
+                    editorIntent.putExtra("ext", selectedNote.getExt());
                     startActivity(editorIntent);
                 }
                 return false;
@@ -102,7 +86,7 @@ public class NoteListFragment extends Fragment {
         if (mNotes.isEmpty()) {
             tvDefault.setVisibility(View.VISIBLE);
         }
-        mAdapter = new NoteListAdapter(mNotes, getActivity());
+        NoteListAdapter mAdapter = new NoteListAdapter(mNotes, getActivity());
         mRecyclerView.setAdapter(mAdapter);
     }
 

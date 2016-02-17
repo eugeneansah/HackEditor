@@ -14,6 +14,7 @@ public class Note {
     private Long id;
     private String title;
     private String content;
+    private String ext;
     private Calendar dateCreated;
     private Calendar dataModified;
 
@@ -66,6 +67,14 @@ public class Note {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getExt() {
+        return ext;
+    }
+
+    public void setExt(String ext) {
+        this.ext = ext;
     }
 
     public Calendar getDateCreated() {
